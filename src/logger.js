@@ -1,0 +1,1 @@
+export const log = (...args) => console.log("[SYNC]", new Date(), ...args);
