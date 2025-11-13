@@ -2,7 +2,7 @@ import { db } from "./db.js";
 import { getByDrawNumber } from "./api.js";
 import { log } from "./logger.js";
 
-async function syncHistorical() {
+export async function syncHistorical() {
   const { rows } = await db.query("SELECT numero_sorteo FROM sincronizacion;");
 
   let last = rows[0].numero_sorteo;
