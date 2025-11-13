@@ -1,40 +1,49 @@
 import { db } from "./db.js";
-import { getByDrawId } from "./api.js";
+import { getByDrawNumber } from "./api.js";
 import { log } from "./logger.js";
 
 async function syncHistorical() {
-  const { rows } = await db.query(
-    "SELECT last_synced_draw FROM sync_status WHERE id = 1"
-  );
+  const { rows } = await db.query("SELECT numero_sorteo FROM sincronizacion;");
 
-  let last = rows[0].last_synced_draw;
-  let next = last + 1;
+  let last = rows[0].numero_sorteo;
+  let next = Number(last) + 1;
 
   log("Buscando sorteo histórico:", next);
 
-  const data = await getByDrawId(next);
+  const sorteo = await getByDrawNumber(next);
+  sorteo.premios.sort((a, b) => Number(a.tipo) - Number(b.tipo));
 
-  if (!data) {
+  if (!sorteo) {
     log("No existe el sorteo", next, "se detiene por hoy.");
     return process.exit();
   }
 
   await db.query(
-    `INSERT INTO lottery_results (draw_id, draw_date, lottery_type, result)
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT (draw_id) DO NOTHING`,
-    [
-      data.id,
-      data.fecha,
-      data.tipo,
-      JSON.stringify(data.numeros)
-    ]
+    `INSERT INTO sorteos_loteria (numero_sorteo, fecha)
+     VALUES ($1, $2)
+     ON CONFLICT (id) DO NOTHING`,
+    [sorteo.numeroSorteo, sorteo.fecha]
   );
 
-  await db.query(
-    "UPDATE sync_status SET last_synced_draw = $1 WHERE id = 1",
-    [next]
-  );
+  const inserts = sorteo.premios.slice(0, 3).map((numero_ganador) => {
+    return db.query(
+      `INSERT INTO numeros_ganadores_loteria (numero, premio, serie, numero_sorteo)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (id) DO NOTHING`,
+      [
+        numero_ganador.numero,
+        numero_ganador.tipo,
+        numero_ganador.serie,
+        sorteo.numeroSorteo,
+      ]
+    );
+  });
+
+  await Promise.all(inserts);
+
+  await db.query("UPDATE sincronizacion SET numero_sorteo = $1 WHERE id = 1", [
+    next,
+  ]);
 
   log("Histórico agregado:", next);
 
