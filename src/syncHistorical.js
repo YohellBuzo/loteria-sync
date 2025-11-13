@@ -49,5 +49,3 @@ async function syncHistorical() {
 
   process.exit();
 }
-
-syncHistorical();

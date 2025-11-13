@@ -2,8 +2,6 @@ import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config();
 
-//primer sorteo lotería 3062
-
 const api = axios.create({
   baseURL: process.env.API_BASE_URL,
   timeout: 10000,
