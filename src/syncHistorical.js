@@ -51,7 +51,7 @@ export async function syncHistorical() {
 
     log("Histórico agregado:", next);
   } catch (error) {
-    if (err.code === "23505") {
+    if (error.code === "23505") {
       // duplicado, ignorar
     } else {
       throw err;
