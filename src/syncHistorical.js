@@ -16,7 +16,7 @@ export async function syncHistorical() {
     const sorteo = await getByDrawNumber(next);
     sorteo.premios.sort((a, b) => Number(a.tipo) - Number(b.tipo));
 
-    if (!sorteo || sorteo.sorteo_Id == 0) {
+    if (!sorteo || sorteo.premios.length == 0) {
       log("No existe el sorteo", next, "se detiene por hoy.");
       return process.exit();
     }
