@@ -18,6 +18,10 @@ export async function syncHistorical() {
 
     if (!sorteo || sorteo.premios.length == 0) {
       log("No existe el sorteo", next, "se detiene por hoy.");
+      await db.query(
+        "UPDATE sincronizacion SET numero_sorteo = $1 WHERE id = 1",
+        [next]
+      );
       return process.exit();
     }
 
